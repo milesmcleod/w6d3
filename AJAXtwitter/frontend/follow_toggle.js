@@ -1,49 +1,46 @@
 const APIUtil = require("./api_util.js");
+class FollowToggle {
 
-const FollowToggle = function(el){
-  this.$el = $(el);
-  this.userId = this.$el.data("user-id");
-  this.followState = this.$el.data("initial-follow-state");
-  this.render();
-  this.handleClick();
-};
-
-FollowToggle.prototype.render = function () {
-  if (this.followState === "unfollowed") {
-    this.$el.text("Follow!");
-  } else if (this.followState === "followed") {
-    this.$el.text("Unfollow!");
+  constructor (el, options){
+    this.$el = $(el);
+    this.userId = this.$el.data("user-id") || options.userId;
+    this.followState = this.$el.data("initial-follow-state") || options.followState;
+    this.render();
+    this.handleClick();
   }
-  console.log(this.followState);
-};
 
-FollowToggle.prototype.handleClick = function () {
-  const follow = this;
-  this.$el.on("click", (e) => {
-    e.preventDefault();
+  render () {
     if (this.followState === "unfollowed") {
-      // debugger
-      const a = APIUtil.followUser(this.userId);
-      a.then(this.followSuccess.bind(follow));
+      this.$el.text("Follow!");
     } else if (this.followState === "followed") {
-      // debugger
-      const b = APIUtil.unfollowUser(this.userId);
-      b.then(this.unfollowSuccess.bind(follow));
+      this.$el.text("Unfollow!");
     }
-  });
-};
+    console.log(this.followState);
+  }
 
-FollowToggle.prototype.followSuccess = function(response) {
-  this.followState = "followed";
-  this.render();
-};
+  handleClick () {
+    this.$el.on("click", (e) => {
+      e.preventDefault();
+      if (this.followState === "unfollowed") {
+        const a = APIUtil.followUser(this.userId);
+        a.then(this.followSuccess.bind(this));
+      } else if (this.followState === "followed") {
+        const b = APIUtil.unfollowUser(this.userId);
+        b.then(this.unfollowSuccess.bind(this));
+      }
+    });
+  }
 
+  followSuccess (response) {
+    this.followState = "followed";
+    this.render();
+  }
 
+  unfollowSuccess (response) {
+    this.followState = "unfollowed";
+    this.render();
+  }
 
-FollowToggle.prototype.unfollowSuccess = function(response) {
-  this.followState = "unfollowed";
-  this.render();
-};
-
+}
 
 module.exports = FollowToggle;
